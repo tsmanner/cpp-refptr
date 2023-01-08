@@ -23,6 +23,8 @@ TEST_CASE("") {
   CHECK(sizeof(Foo) == 8);
   CHECK(sizeof(obj<Foo>) == 12);
   CHECK(sizeof(ref<Foo>) == sizeof(void *));
+  CHECK(alignof(Foo) >= alignof(refcount_t));
+  CHECK(obj<Foo>::padding == 2);
 
   auto f = obj<Foo>{};
   f->x = 12345;

@@ -12,19 +12,19 @@
 // of ref<_T> figure out how far back to look if they are using a _T2 that is a base
 // class of _T, as _T2 might have weaker alignment requirements.
 
-// template <typename _T, typename _MaxAlignT = max_align_t>
-// struct alignas(_MaxAlignT) obj {
-//   static constexpr auto alignment = sizeof(_MaxAlignT);
+using refcount_t = uint16_t;
 
-template <typename _T, typename _AlignAsT = typename std::conditional<(alignof(_T) > alignof(uint16_t)), _T, uint16_t>::type>
+template <typename _T, typename _AlignAsT = typename std::conditional<(alignof(_T) > alignof(refcount_t)), _T, refcount_t>::type>
 struct alignas(_AlignAsT) obj {
-  static constexpr auto alignment = alignof(_AlignAsT);
-  static constexpr auto padding = alignment - sizeof(uint16_t);
+  static constexpr auto padding = alignof(_AlignAsT) - sizeof(refcount_t);
 
   template <typename ..._Args> obj(_Args &&...args) : refcount(0), object(args...) {}
 
-  uint16_t refcount;
+  // Put the padding first so we know the refcount is _always_ bytes immediately preceding
+  // the object.  That way, references can always just subtract sizeof(refcount_t) from
+  // the object address and get the count.
   char _[padding];
+  refcount_t refcount;
   _T object;
 
   inline _T       *operator->()       { return &object; }
@@ -35,25 +35,25 @@ struct alignas(_AlignAsT) obj {
 
 template <typename _T>
 struct ref {
-  obj<_T> *referent;
+  _T *referent;
+
+  refcount_t &refcount() {
+    return *reinterpret_cast<refcount_t *>(reinterpret_cast<char *>(referent) - sizeof(refcount_t));
+  }
 
   ref(ref      &&r): referent(r.referent) { r.referent = nullptr; }
-  ref(ref const &r): referent(r.referent) { ++referent->refcount; }
+  ref(ref const &r): referent(r.referent) { ++refcount(); }
 
-  ref(_T &t):
-    referent(reinterpret_cast<obj<_T> *>(reinterpret_cast<char *>(&t) - obj<_T>::alignment))
-  {
-    ++referent->refcount;
+  ref(_T &t): referent(&t) {
+    ++refcount();
   }
 
-  ref(_T *t):
-    referent(reinterpret_cast<obj<_T> *>(reinterpret_cast<char *>( t) - obj<_T>::alignment))
-  {
-    ++referent->refcount;
+  ref(_T *t): referent(t) {
+    ++refcount();
   }
 
-  ~ref() { if (referent) { --referent->refcount; } }
+  ~ref() { if (referent) { --refcount(); } }
 
-  inline _T       *operator->()       { return &referent->object; }
-  inline _T const *operator->() const { return &referent->object; }
+  inline _T       *operator->()       { return referent; }
+  inline _T const *operator->() const { return referent; }
 };
