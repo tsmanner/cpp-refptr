@@ -1,0 +1,45 @@
+language: nix
+nix: 2.3.7
+
+jobs:
+  allow_failures:
+    - name: gcc
+    - name: clang
+  include:
+    # Latest stable GCC and Clang
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc
+      name: gcc
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang
+      name: clang
+    # All supported versions of GCC (7 - 12)
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc7
+      name: gcc7
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc8
+      name: gcc8
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc9
+      name: gcc9
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc10
+      name: gcc10
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc11
+      name: gcc11
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc gcc12
+      name: gcc12
+    # All supported versions of Clang (6 - 14)
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_6
+      name: clang_6
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_7
+      name: clang_7
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_8
+      name: clang_8
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_9
+      name: clang_9
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_10
+      name: clang_10
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_11
+      name: clang_11
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_12
+      name: clang_12
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_13
+      name: clang_13
+    - script: nix-shell --pure --run "mkdir build ; cd build ; cmake -G Ninja .. && ninja tests && ./tests" --argstr cc clang_14
+      name: clang_14
