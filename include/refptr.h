@@ -19,15 +19,17 @@
 using refcount_t = uint16_t;
 
 
+template <typename _T> using AlignAs = std::conditional_t<(alignof(_T) > sizeof(refcount_t)), _T, refcount_t>;
+
 // Align an instance of refobj by the greater of the alignment requirement of _T and the
 // size of a refcount.  We need to make sure there's enough space in front of the type to
 // fit an instance of refcount_t.
-template <typename _T, typename _AlignAs = std::conditional_t<(alignof(_T) > sizeof(refcount_t)), _T, refcount_t>>
-struct alignas(_AlignAs) refobj {
+template <typename _T>
+struct alignas(AlignAs<_T>) refobj {
   template <typename ..._Args> [[gnu::always_inline]] refobj(_Args &&...args) : refcount(0), object(args...) {}
 
   // Pad with the difference between the alignment
-  char padding[alignof(_AlignAs) - sizeof(refcount_t)];
+  char padding[alignof(AlignAs<_T>) - sizeof(refcount_t)];
   refcount_t refcount;
   _T object;
 
