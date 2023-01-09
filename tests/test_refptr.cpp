@@ -13,24 +13,24 @@ struct Foo {
 TEST_CASE("") {
   // The object is one max-alignment increment larger than the object
   // CHECK(sizeof(Foo) == 8);
-  // CHECK(sizeof(obj<Foo>) == 32);
-  // CHECK(sizeof(obj<Foo>) == sizeof(max_align_t) + sizeof(Foo));
+  // CHECK(sizeof(refobj<Foo>) == 32);
+  // CHECK(sizeof(refobj<Foo>) == sizeof(max_align_t) + sizeof(Foo));
   // CHECK(alignof(Foo) == 4);
-  // CHECK(alignof(obj<Foo>) == alignof(max_align_t));
-  // CHECK(sizeof(ref<Foo>) == sizeof(void *));
+  // CHECK(alignof(refobj<Foo>) == alignof(max_align_t));
+  // CHECK(sizeof(refptr<Foo>) == sizeof(void *));
 
 
   CHECK(sizeof(Foo) == 8);
-  CHECK(sizeof(obj<Foo>) == 12);
-  CHECK(sizeof(ref<Foo>) == sizeof(void *));
+  CHECK(sizeof(refobj<Foo>) == 12);
+  CHECK(sizeof(refptr<Foo>) == sizeof(void *));
   CHECK(alignof(Foo) >= alignof(refcount_t));
-  CHECK(obj<Foo>::padding == 2);
+  CHECK(sizeof(refobj<Foo>::padding) == 2);
 
-  auto f = obj<Foo>{};
+  auto f = refobj<Foo>{};
   f->x = 12345;
   f->y =  'a';
   {
-    auto r = ref<Foo>(f.object);
+    auto r = refptr<Foo>(&f.object);
     // Refcount went up
     CHECK(f.refcount == 1);
     // Values are the same

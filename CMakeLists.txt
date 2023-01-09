@@ -31,7 +31,7 @@ endif ()
 
 if (NOT IS_SUBPROJECT)
 
-# Catch2 unit testing framework.
+  # Catch2 unit testing framework.
   FetchContent_Declare(
     catch2
     GIT_REPOSITORY git@github.com:CatchOrg/Catch2.git
@@ -43,18 +43,39 @@ if (NOT IS_SUBPROJECT)
     add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
   endif ()
 
-  add_executable(
-    tests
-    EXCLUDE_FROM_ALL
-    ./tests/test_refptr.cpp
+  # {fmt} formatting library
+  FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY git@github.com:fmtlib/fmt.git
+    GIT_TAG        9.1.0
   )
+  FetchContent_GetProperties(fmt)
+  if (NOT fmt_POPULATED)
+    FetchContent_Populate(fmt)
+    add_subdirectory(${fmt_SOURCE_DIR} ${fmt_BINARY_DIR})
+  endif ()
+
+  add_executable(tests EXCLUDE_FROM_ALL ./tests/test_refptr.cpp)
   target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
-  target_include_directories(
-    tests
-    PRIVATE
-    ./include
-    ${catch2_SOURCE_DIR}/src
-    ${CMAKE_BINARY_DIR}/generated-includes
-  )
+  target_include_directories(tests PRIVATE ./include)
+
+  # Benchmarking binaries
+  set(BENCH_COMPILE_OPTIONS "-O1")
+
+  add_executable(bench-refptr EXCLUDE_FROM_ALL ./benchmarks/refptr.cpp)
+  target_link_libraries(bench-refptr PRIVATE fmt::fmt)
+  target_include_directories(bench-refptr PRIVATE ./include)
+  target_compile_options(bench-refptr PRIVATE ${BENCH_COMPILE_OPTIONS})
+
+  add_executable(bench-shared_ptr EXCLUDE_FROM_ALL ./benchmarks/shared_ptr.cpp)
+  target_link_libraries(bench-shared_ptr PRIVATE fmt::fmt)
+  target_include_directories(bench-shared_ptr PRIVATE ./include)
+  target_compile_options(bench-shared_ptr PRIVATE ${BENCH_COMPILE_OPTIONS})
+
+  add_executable(bench-ptr EXCLUDE_FROM_ALL ./benchmarks/ptr.cpp)
+  target_link_libraries(bench-ptr PRIVATE fmt::fmt)
+  target_include_directories(bench-ptr PRIVATE ./include)
+  target_compile_options(bench-ptr PRIVATE ${BENCH_COMPILE_OPTIONS})
+
 
 endif()
