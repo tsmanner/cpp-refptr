@@ -60,7 +60,7 @@ if (NOT IS_SUBPROJECT)
   target_include_directories(tests PRIVATE ./include)
 
   # Benchmarking binaries
-  set(BENCH_COMPILE_OPTIONS "-O1")
+  set(BENCH_COMPILE_OPTIONS "-O2")
 
   add_executable(bench-refptr EXCLUDE_FROM_ALL ./benchmarks/refptr.cpp)
   target_link_libraries(bench-refptr PRIVATE fmt::fmt)

@@ -1,5 +1,3 @@
-#include "refptr.h"
-
 #include <fmt/core.h>
 #include <fmt/chrono.h>
 
@@ -15,8 +13,7 @@ void run(char const *prefix) {
   using namespace std::literals;
 
   unsigned int i = 0;
-  _T o {};
-  _T *t = &o;
+  _T *t = new _T();
 
   auto t0 = clk::now();
   for (; i < repetitions; ++i) {
@@ -26,6 +23,7 @@ void run(char const *prefix) {
   }
   auto t1 = clk::now();
   auto dt = t1 - t0;
+  delete t;
 
   auto s = std::chrono::duration_cast<std::chrono::seconds>(dt);
   fmt::print("{} {:>7} {:>7} {:>5} {:>2}.{:0>9}s {:>3}x{} times\n", prefix, sizeof(_T), sizeof(_T), dt/(_I*i), s.count(), (dt - s).count(), _I, i);

@@ -4,41 +4,51 @@
 
 
 struct Foo {
+  static int instances;
+
+  Foo() { ++instances; }
+  ~Foo() { --instances; }
+
   int x;
   char y;
 };
 
-#include <iostream>
-
-TEST_CASE("") {
-  // The object is one max-alignment increment larger than the object
-  // CHECK(sizeof(Foo) == 8);
-  // CHECK(sizeof(refobj<Foo>) == 32);
-  // CHECK(sizeof(refobj<Foo>) == sizeof(max_align_t) + sizeof(Foo));
-  // CHECK(alignof(Foo) == 4);
-  // CHECK(alignof(refobj<Foo>) == alignof(max_align_t));
-  // CHECK(sizeof(refptr<Foo>) == sizeof(void *));
+int Foo::instances = 0;
 
 
+TEST_CASE("Reference counting, no delete") {
   CHECK(sizeof(Foo) == 8);
   CHECK(sizeof(refobj<Foo>) == 12);
   CHECK(sizeof(refptr<Foo>) == sizeof(void *));
   CHECK(alignof(Foo) >= alignof(refcount_t));
   CHECK(sizeof(refobj<Foo>::padding) == 2);
 
-  auto f = refobj<Foo>{};
-  f->x = 12345;
-  f->y =  'a';
+  // No instances of Foo exist.
+  CHECK(Foo::instances == 0);
   {
-    auto r = refptr<Foo>(&f.object);
-    // Refcount went up
-    CHECK(f.refcount == 1);
-    // Values are the same
-    CHECK( f->x ==  r->x);
-    CHECK( f->y ==  r->y);
-    // Addresses are the same
-    CHECK(&f->x == &r->x);
-    CHECK(&f->y == &r->y);
+    auto r1 = refptr<Foo>(New<Foo>());
+    // One instance of a Foo.
+    CHECK(Foo::instances == 1);
+    r1->x = 12345;
+    r1->y =  'a';
+    {
+      auto r = refptr<Foo>(r1);
+      // Still only one instance of a Foo.
+      CHECK(Foo::instances == 1);
+      // Refcount went up
+      CHECK(r1.refcount().count == 2);
+      CHECK(1 << r1.refcount().alignment == alignof(refobj<Foo>));
+      // Values are the same
+      CHECK( r1->x ==  r->x);
+      CHECK( r1->y ==  r->y);
+      // Addresses are the same
+      CHECK(&r1->x == &r->x);
+      CHECK(&r1->y == &r->y);
+    }
+    CHECK(r1.refcount().count == 1);
+    // Still only one instance of a Foo.
+    CHECK(Foo::instances == 1);
   }
-  CHECK(f.refcount == 0);
+  // Finally, no instances of a Foo exist.
+  CHECK(Foo::instances == 0);
 }

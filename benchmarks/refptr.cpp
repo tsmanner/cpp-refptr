@@ -15,8 +15,8 @@ void run(char const *prefix) {
   using namespace std::literals;
 
   unsigned int i = 0;
-  refobj<_T> o {};
-  _T *t = &o.object;
+  refptr<_T> r1 {New<_T>()};
+  _T *t = r1.referent;
 
   auto t0 = clk::now();
   for (; i < repetitions; ++i) {
